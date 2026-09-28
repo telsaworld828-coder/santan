@@ -6,7 +6,7 @@
 import { useRef, useSyncExternalStore } from "react";
 import { supabase, hasSupabase } from "@/lib/supabase";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Types ────────────────────────────────────────────────────────────────
 
 export type TxStatus = "pending" | "successful" | "failed";
 export type TxKind = "credit" | "debit";
@@ -59,131 +59,17 @@ export type AppState = {
   hydrated: boolean;
 };
 
-// ── Storage key ───────────────────────────────────────────────────────────────
+// ── Storage key ──────────────────────────────────────────────────────────
 
 const LS_KEY = "santander.store.v1";
 
-// ── Seed data ─────────────────────────────────────────────────────────────────
+// ── Seed data (empty) ────────────────────────────────────────────────────
 
 function seed(): AppState {
-  const now = Date.now();
-  const d = 86_400_000;
-  const users: AppUser[] = [
-    {
-      id: "alex",
-      name: "Alex Morgan",
-      email: "alex@santander.app",
-      password: "demo1234",
-      pin: "1234",
-      balance: 4827.42,
-      status: "active",
-      beneficiary: {
-        accountName: "Alex Morgan",
-        accountNumber: "88421097",
-        bankName: "Santander UK",
-        bankAddress: "2 Triton Square, London, NW1 3AN",
-        country: "United Kingdom",
-        swiftCode: "ABBYGB2L",
-        ibanNumber: "GB29 ABBY 0429 1588 4210 97",
-      },
-      createdAt: now - 90 * d,
-    },
-    {
-      id: "sarah",
-      name: "Sarah Kennedy",
-      email: "sarah.k@gmail.com",
-      password: "demo1234",
-      pin: "1234",
-      balance: 1240.10,
-      status: "active",
-      beneficiary: {
-        accountName: "Sarah Kennedy",
-        accountNumber: "55238821",
-        bankName: "Monzo Bank",
-        bankAddress: "Broadwalk House, 5 Appold Street, London, EC2A 2AG",
-        country: "United Kingdom",
-        swiftCode: "MONZGB2L",
-        ibanNumber: "GB44 MONZ 0400 0455 2388 21",
-      },
-      createdAt: now - 60 * d,
-    },
-    {
-      id: "james",
-      name: "James Patel",
-      email: "j.patel@outlook.com",
-      password: "demo1234",
-      pin: "1234",
-      balance: 312.55,
-      status: "active",
-      beneficiary: {
-        accountName: "James Patel",
-        accountNumber: "33187765",
-        bankName: "Starling Bank",
-        bankAddress: "Churchill Place, London, E14 5HU",
-        country: "United Kingdom",
-        swiftCode: "SRLGGB2L",
-        ibanNumber: "GB57 SRLG 0412 0833 1877 65",
-      },
-      createdAt: now - 30 * d,
-    },
-    {
-      id: "mia",
-      name: "Mia Tanaka",
-      email: "mia.t@santander.app",
-      password: "demo1234",
-      pin: "4321",
-      balance: 8920.00,
-      status: "active",
-      beneficiary: {
-        accountName: "Mia Tanaka",
-        accountNumber: "00977024419",
-        bankName: "Revolut Ltd",
-        bankAddress: "7 Westferry Circus, London, E14 4HD",
-        country: "United Kingdom",
-        swiftCode: "REVOGB21",
-        ibanNumber: "GB29 REVO 0099 7702 4419 00",
-      },
-      createdAt: now - 14 * d,
-    },
-    {
-      id: "tom",
-      name: "Tom Becker",
-      email: "tbecker@proton.me",
-      password: "demo1234",
-      pin: "0000",
-      balance: 56.78,
-      status: "frozen",
-      beneficiary: {
-        accountName: "Tom Becker",
-        accountNumber: "10293847",
-        bankName: "Barclays Bank UK",
-        bankAddress: "1 Churchill Place, London, E14 5HP",
-        country: "United Kingdom",
-        swiftCode: "BARCGB22",
-        ibanNumber: "GB91 BARC 2032 1110 2938 47",
-      },
-      createdAt: now - 5 * d,
-    },
-  ];
-
-  const transactions: AppTransaction[] = [
-    { id: "t1",  userId: "alex",  merchant: "Pret A Manger",          category: "food",     amount: -6.45,   status: "successful", kind: "debit",  createdAt: now - 3_600_000,         deleted: false, source: "user" },
-    { id: "t2",  userId: "alex",  merchant: "Salary — Northwind Ltd", category: "income",   amount: 2890.0,  status: "successful", kind: "credit", createdAt: now - 1 * d,             deleted: false, source: "system" },
-    { id: "t3",  userId: "alex",  merchant: "Transport for London",   category: "transit",  amount: -8.40,   status: "successful", kind: "debit",  createdAt: now - 1 * d - 1_800_000, deleted: false, source: "user" },
-    { id: "t4",  userId: "alex",  merchant: "Spotify",                category: "subs",     amount: -11.99,  status: "successful", kind: "debit",  createdAt: now - 4 * d,             deleted: false, source: "user" },
-    { id: "t5",  userId: "alex",  merchant: "Sarah Kennedy",          category: "transfer", amount: 40.0,    status: "successful", kind: "credit", createdAt: now - 5 * d, deleted: false, source: "user",
-      beneficiary: users[1].beneficiary },
-    { id: "t6",  userId: "alex",  merchant: "Tesco",                  category: "food",     amount: -42.18,  status: "successful", kind: "debit",  createdAt: now - 6 * d,             deleted: false, source: "user" },
-    { id: "t7",  userId: "alex",  merchant: "EE Mobile",              category: "bills",    amount: -22.0,   status: "pending",    kind: "debit",  createdAt: now - 8 * d,             deleted: false, source: "user" },
-    { id: "t8",  userId: "sarah", merchant: "Uber",                   category: "transit",  amount: -14.20,  status: "successful", kind: "debit",  createdAt: now - 2 * d,             deleted: false, source: "user" },
-    { id: "t9",  userId: "james", merchant: "Wage — Acme Co",         category: "income",   amount: 1850.0,  status: "pending",    kind: "credit", createdAt: now - 3 * d,             deleted: false, source: "system" },
-    { id: "t10", userId: "mia",   merchant: "Apple Store",            category: "shop",     amount: -1199.0, status: "successful", kind: "debit",  createdAt: now - 7 * d,             deleted: false, source: "user" },
-  ];
-
-  return { adminBalance: 2_000_000, users, transactions, hydrated: false };
+  return { adminBalance: 2_000_000, users: [], transactions: [], hydrated: false };
 }
 
-// ── Load / Persist ────────────────────────────────────────────────────────────
+// ── Load / Persist ───────────────────────────────────────────────────────
 
 function loadFromLS(): AppState {
   try {
@@ -205,7 +91,7 @@ function persistToLS(s: AppState) {
   } catch { /* storage quota */ }
 }
 
-// ── Supabase push helpers ─────────────────────────────────────────────────────
+// ── Supabase push helpers ────────────────────────────────────────────────
 
 async function pushUser(u: AppUser) {
   if (!hasSupabase) return;
@@ -250,7 +136,7 @@ async function pushAdminBalance(balance: number) {
   await supabase.from("santander_admin").upsert({ id: "main", balance });
 }
 
-// ── Store core ────────────────────────────────────────────────────────────────
+// ── Store core ──────────────────────────────────────────────────────────
 
 let state: AppState = loadFromLS();
 const listeners = new Set<() => void>();
@@ -265,7 +151,7 @@ function subscribe(l: () => void) {
   return () => listeners.delete(l);
 }
 
-// ── Unique ID generator ───────────────────────────────────────────────────────
+// ── Unique ID generator ──────────────────────────────────────────────────
 // Uses a counter suffix to prevent collisions within the same millisecond
 let _idCounter = 0;
 function uid(prefix = "tx"): string {
@@ -273,7 +159,7 @@ function uid(prefix = "tx"): string {
   return `${prefix}${Date.now().toString(36)}${_idCounter.toString(36).padStart(2, "0")}`;
 }
 
-// ── Supabase hydration & realtime ─────────────────────────────────────────────
+// ── Supabase hydration & realtime ────────────────────────────────────────
 
 let hydrateRan = false;
 
@@ -325,17 +211,12 @@ export async function hydrateFromSupabase() {
 
     const adminBalance = adminRes.data ? Number(adminRes.data.balance) : state.adminBalance;
 
-    if (remoteUsers.length > 0) {
+    if (remoteUsers.length > 0 || remoteTxs.length > 0) {
       // Supabase has data — use it as source of truth
       state = { adminBalance, users: remoteUsers, transactions: remoteTxs, hydrated: true };
     } else {
-      // First boot — push local seed data up to Supabase
+      // Empty database — just mark as hydrated with local state
       state = { ...state, hydrated: true };
-      await Promise.all([
-        ...state.users.map(pushUser),
-        ...state.transactions.map(pushTx),
-        pushAdminBalance(state.adminBalance),
-      ]);
     }
     emit();
   } catch (err) {
@@ -416,7 +297,7 @@ export async function hydrateFromSupabase() {
     .subscribe();
 }
 
-// ── React hook ────────────────────────────────────────────────────────────────
+// ── React hook ──────────────────────────────────────────────────────────
 
 export function useStore<T>(selector: (s: AppState) => T): T {
   // Cache the last result keyed by state reference — avoids re-running selector
@@ -431,7 +312,7 @@ export function useStore<T>(selector: (s: AppState) => T): T {
   return useSyncExternalStore(subscribe, snap, snap);
 }
 
-// ── Utilities ─────────────────────────────────────────────────────────────────
+// ── Utilities ────────────────────────────────────────────────────────────
 
 export function gbp(n: number): string {
   const sign = n < 0 ? "-" : "";
@@ -450,7 +331,7 @@ export function formatRelative(ts: number): string {
   return new Date(ts).toLocaleDateString();
 }
 
-// ── Selectors ─────────────────────────────────────────────────────────────────
+// ── Selectors ────────────────────────────────────────────────────────────
 
 export function selectUser(id: string) {
   return (s: AppState) => s.users.find((u) => u.id === id);
@@ -506,7 +387,7 @@ export function selectAllTransactions(opts: { includeDeleted?: boolean } = {}) {
       .sort((a, b) => b.createdAt - a.createdAt);
 }
 
-// ── Mutations ─────────────────────────────────────────────────────────────────
+// ── Mutations ────────────────────────────────────────────────────────────
 
 export const store = {
   get state() { return state; },
